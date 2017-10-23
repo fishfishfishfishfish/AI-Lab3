@@ -20,5 +20,39 @@ for x in '验证集的向量':
     predict_result = x · w
     y = 'x对应的正确结果'
     if predict_result > 0 and y > 0:
-        TP ++
+        TP++
+    else if predict_result < 0 and y < 0:
+        TF++
+    else if predict_result > 0 and y > 0:
+        FP++
+    else:
+        FN++
+'计算评价指标'(TP, TN, FP, FN)
+
+4. 评价指标的计算
+    if tp == 0:
+        return 0
+    Accuracy = (tp+tn)/(tp+tn+fp+fn)
+    Precision = tp/(tp+fp)
+    Recall = tp/(tp+fn)
+    F1 = (2*Precision*Recall)/(Precision+Recall)
+
+5. 口袋算法
+TP = 0
+TN = 0
+FP = 0
+FN = 0
+for x in '训练集的向量':
+    predict_result = x · w
+    y = 'x对应的正确结果'
+    if predict_result > 0 and y > 0:
+        TP++
+    else if predict_result < 0 and y < 0:
+        TF++
+    else if predict_result > 0 and y > 0:
+        FP++
+    else:
+        FN++
+criterion = '计算评价指标'(TP, TN, FP, FN)
+while '下层循环遍历了所有向量x'
     
