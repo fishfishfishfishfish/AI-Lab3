@@ -1,2 +1,28 @@
-use Recall: accuracy: 0.16 precision: 0.16 recall: 1.0 F1: 0.2758620689655173
-use F1: accuracy: 0.67 precision: 0.28535353535353536 recall: 0.70625 F1: 0.4064748201438849
+use Precision: accuracy: 0.825 precision: 0.2413793103448276 recall: 0.04375 F1: 0.07407407407407408
+use F1: accuracy: 0.714 precision: 0.3125 recall: 0.65625 F1: 0.42338709677419356
+
+origin PLA:
+use best  Accuracy
+TP: 1 TN: 830 FP: 0 FN: 169
+Accuracy 0.831
+Precision 1.0
+Recall 0.00588235294118
+F1 0.0116959064327
+use best  Precision
+TP: 1 TN: 830 FP: 0 FN: 169
+Accuracy 0.831
+Precision 1.0
+Recall 0.00588235294118
+F1 0.0116959064327
+use best  Recall
+TP: 170 TN: 20 FP: 810 FN: 0
+Accuracy 0.19
+Precision 0.173469387755
+Recall 1.0
+F1 0.295652173913
+use best  F1
+TP: 130 TN: 462 FP: 368 FN: 40
+Accuracy 0.592
+Precision 0.261044176707
+Recall 0.764705882353
+F1 0.389221556886

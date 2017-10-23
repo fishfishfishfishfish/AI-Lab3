@@ -1,3 +1,6 @@
+import numpy
+
+
 def string_to_float(list_await=[]):
     res = []
     for k in range(len(list_await)):
@@ -5,247 +8,138 @@ def string_to_float(list_await=[]):
     return res
 
 
-ft = open('train.csv', 'r')
-vec_len = len(ft.readline().split(','))
-w = []
-for i in range(vec_len):
-    w.append(1)
-w1 = []
-for i in range(vec_len):
-    w1.append(0)
-ft.close()
+def cal_criterion(tp, tn, fp, fn, criterion_type):
+    if tp == 0:
+        print('tp = 0!!!!')
+        return 0
+    if criterion_type == 1:
+        # Accuracy
+        return (tp+tn)/(tp+tn+fp+fn)
+    elif criterion_type == 2:
+        # Precision
+        return tp/(tp+fp)
+    elif criterion_type == 3:
+        # Recall
+        return tp/(tp+fn)
+    else:
+        # F1
+        p = tp/(tp+fp)
+        r = tp/(tp+fn)
+        return (2*p*r)/(p+r)
 
+
+cri_name = ['Accuracy', 'Precision', 'Recall', 'F1']
 ft = open('train.csv', 'r')
 train_list_before = ft.readlines()
-train_list = []
+vc_len = len(train_list_before[0].split(','))  # 表示向量的维度大小
+train_set_size = len(train_list_before)  # 训练集向量数量
+train_x = []  # 训练集的增广特征向量的集合
+train_y = []  # 训练集各个特征向量对应的结果
 for line in train_list_before:
-    T = []
     temp_row = line.split(',')
     T = string_to_float(temp_row)
-    train_list.append(T)
-# print(train_list[0][2])
-for line in train_list:
-    line.insert(0, 1.0)
-# print(train_list[200][2])
-# print(len(train_list[200]))
-# print(vec_len)
+    T.insert(0, 1)  # 特征向量变成增广特征向量
+    temp_np = numpy.array(T[0:vc_len])
+    train_x.append(temp_np)
+    train_y.append(T[vc_len])
+w = numpy.ones(vc_len)  # 权重向量
+w1 = numpy.ones(vc_len)  # 用于记录更新后的权重向量
 
-best_A = 0
-best_P = 0
-best_R = 0
-best_F = 0
-best_Aet = 0
-best_Pet = 0
-best_Ret = 0
-best_Fet = 0
-best_Aw = []
-best_Pw = []
-best_Rw = []
-best_Fw = []
+best = numpy.zeros(4)  # 记录四个评测指标最优值：0-accuracy，1-precision，2-recall，3-F1
+best_time = numpy.zeros(4)  # 记录四个评测指标取得最优值时采取的结束时间
+best_w = []  # 记录取得最优评测指标时的w
+for i in range(4):
+    t_np = numpy.zeros(vc_len)
+    best_w.append(t_np)
+# 尝试多个结束时间
 for end_time in range(100):
-    w = []
-    for i in range(vec_len):
-        w.append(1)
+    w = numpy.ones(vc_len)
     for i in range(end_time):
-        for line in train_list:
-            SUM = 0
-            # print('line = ', line)
-            # print('w = ', w)
-            for j in range(vec_len):
-                SUM += w[j]*line[j]
-                w1[j] = w[j]+line[j]*line[vec_len]
-            # print('SUM = ', SUM)
-            # print('SUM*line[vec_len] = ', SUM*line[vec_len])
-            if SUM*line[vec_len] < 0:
-                # print('in')
-                w = w1[:]
+        for j in range(train_set_size):
+            SUM = w.dot(train_x[j])
+            w1 = w+train_x[j]*train_y[j]
+            if SUM*train_y[j] <= 0:
+                w = w1.copy()
                 break
-        # print(w)
-        # print(i)
-    # 计算训练集的结果
+    # 评价训练集的结果
     TP = 0
     TN = 0
     FP = 0
     FN = 0
-    for line in train_list:
-        SUM = 0
-        for j in range(vec_len):
-            SUM += w[j]*line[j]
-        if SUM > 0 and line[vec_len] > 0:
+    for i in range(train_set_size):
+        SUM = w.dot(train_x[i])
+        if SUM > 0 and train_y[i] > 0:
             TP += 1
-        elif SUM < 0 and line[vec_len] < 0:
+        elif SUM < 0 and train_y[i] < 0:
             TN += 1
-        elif SUM > 0 and line[vec_len] < 0:
+        elif SUM > 0 and train_y[i] < 0:
             FP += 1
         else:
             FN += 1
     # print('end time = ', end_time);
     # print('TP:', TP, 'TN:', TN, 'FP:', FP, 'FN:', FN)
-    Accuracy = (TP+TN)/(TP+TN+FP+FN)
-    Precision = TP / (TP + FP)
-    Recall = TP / (TP + FN)
-    F1 = (2*Precision*Recall)/(Precision+Recall)
-    # print('Accuracy:', Accuracy)
-    # print('Precision:', Precision)
-    # print('Recall:', Recall)
-    # print('F1:', F1)
-    if Accuracy > best_A:
-        best_A = Accuracy
-        best_Aet = end_time
-        best_Aw = w[:]
-    if Precision > best_P:
-        best_P = Precision
-        best_Pet = end_time
-        best_Pw = w[:]
-    if Recall > best_R:
-        best_R = Recall
-        best_Ret = end_time
-        best_Rw = w[:]
-    if F1 > best_F:
-        best_F = F1
-        best_Fet = end_time
-        best_Fw = w[:]
-print('best Accuracy:', best_A, 'in', best_Aet)
-print('best Precision:', best_P, 'in', best_Pet)
-print('best Recall:', Recall, 'in', best_Ret)
-print('best F1:', F1, 'in', best_Fet)
-
+    cri_temp = numpy.ones(4)
+    for i in range(0, 4):
+        cri_temp[i] = cal_criterion(TP, TN, FP, FN, i+1)
+        # print(cri_name[i], cri_temp[i])
+        if cri_temp[i] > best[i]:
+            best[i] = cri_temp[i]
+            best_time[i] = end_time
+            best_w[i] = w.copy()
+for i in range(0, 4):
+    print('best ', cri_name[i], ' ', best[i], ' in ', best_time[i], ' with ', best_w[i])
 # 进行验证
+# 获取验证集数据
 fv = open('val.csv', 'r')
 val_list_before = fv.readlines()
-val_list = []
+val_set_size = len(val_list_before)  # 验证集向量数量
+val_x = []  # 验证集增广特征向量集合
+val_y = []  # 验证集各个增广特征向量对应的结果
 for line in val_list_before:
-    T = []
     temp_row = line.split(',')
     T = string_to_float(temp_row)
-    val_list.append(T)
-for line in val_list:
-    line.insert(0, 1.0)
-print('use best Accuracy')
-VTP = 0
-VTN = 0
-VFP = 0
-VFN = 0
-for line in val_list:
-    SUM = 0
-    for j in range(vec_len):
-        SUM += best_Aw[j]*line[j]
-    if SUM > 0 and line[vec_len] > 0:
-        VTP += 1
-    elif SUM < 0 and line[vec_len] < 0:
-        VTN += 1
-    elif SUM > 0 and line[vec_len] < 0:
-        VFP += 1
-    else:
-        VFN += 1
-print('TP:', VTP, 'TN:', VTN, 'FP:', VFP, 'FN:', VFN)
-# Accuracy = (VTP+VTN)/(VTP+VTN+VFP+VFN)
-# Precision = VTP / (VTP + VFP)
-# Recall = VTP / (VTP + VFN)
-# F1 = (2*Precision*Recall)/(Precision+Recall)
-# print('Accuracy:', Accuracy)
-# print('Precision:', Precision)
-# print('Recall:', Recall)
-# print('F1', F1)
-
-print('use best Precision')
-VTP = 0
-VTN = 0
-VFP = 0
-VFN = 0
-for line in val_list:
-    SUM = 0
-    for j in range(vec_len):
-        SUM += best_Pw[j]*line[j]
-    if SUM > 0 and line[vec_len] > 0:
-        VTP += 1
-    elif SUM < 0 and line[vec_len] < 0:
-        VTN += 1
-    elif SUM > 0 and line[vec_len] < 0:
-        VFP += 1
-    else:
-        VFN += 1
-print('TP:', VTP, 'TN:', VTN, 'FP:', VFP, 'FN:', VFN)
-# Accuracy = (VTP+VTN)/(VTP+VTN+VFP+VFN)
-# Precision = VTP / (VTP + VFP)
-# Recall = VTP / (VTP + VFN)
-# F1 = (2*Precision*Recall)/(Precision+Recall)
-# print('Accuracy:', Accuracy)
-# print('Precision:', Precision)
-# print('Recall:', Recall)
-# print('F1', F1)
-
-print('use best Recall')
-VTP = 0
-VTN = 0
-VFP = 0
-VFN = 0
-for line in val_list:
-    SUM = 0
-    for j in range(vec_len):
-        SUM += best_Rw[j]*line[j]
-    if SUM > 0 and line[vec_len] > 0:
-        VTP += 1
-    elif SUM < 0 and line[vec_len] < 0:
-        VTN += 1
-    elif SUM > 0 and line[vec_len] < 0:
-        VFP += 1
-    else:
-        VFN += 1
-print('TP:', VTP, 'TN:', VTN, 'FP:', VFP, 'FN:', VFN)
-# Accuracy = (VTP+VTN)/(VTP+VTN+VFP+VFN)
-# Precision = VTP / (VTP + VFP)
-# Recall = VTP / (VTP + VFN)
-# F1 = (2*Precision*Recall)/(Precision+Recall)
-# print('Accuracy:', Accuracy)
-# print('Precision:', Precision)
-# print('Recall:', Recall)
-# print('F1', F1)
-
-print('use best F1')
-VTP = 0
-VTN = 0
-VFP = 0
-VFN = 0
-for line in val_list:
-    SUM = 0
-    for j in range(vec_len):
-        SUM += best_Fw[j]*line[j]
-    if SUM > 0 and line[vec_len] > 0:
-        VTP += 1
-    elif SUM < 0 and line[vec_len] < 0:
-        VTN += 1
-    elif SUM > 0 and line[vec_len] < 0:
-        VFP += 1
-    else:
-        VFN += 1
-print('TP:', VTP, 'TN:', VTN, 'FP:', VFP, 'FN:', VFN)
-# Accuracy = (VTP+VTN)/(VTP+VTN+VFP+VFN)
-# Precision = VTP / (VTP + VFP)
-# Recall = VTP / (VTP + VFN)
-# F1 = (2*Precision*Recall)/(Precision+Recall)
-# print('Accuracy:', Accuracy)
-# print('Precision:', Precision)
-# print('Recall:', Recall)
-# print('F1', F1)
-
+    T.insert(0, 1)  # 特征向量前面塞1变成增广特征向量
+    temp_np = numpy.array(T[0:vc_len])
+    val_x.append(temp_np)
+    val_y.append(T[vc_len])
+for cri_it in range(4):
+    print('use best ', cri_name[cri_it])
+    VTP = 0
+    VTN = 0
+    VFP = 0
+    VFN = 0
+    for i in range(val_set_size):
+        SUM = best_w[cri_it].dot(train_x[i])
+        if SUM > 0 and train_y[i] > 0:
+            VTP += 1
+        elif SUM < 0 and train_y[i] < 0:
+            VTN += 1
+        elif SUM > 0 and train_y[i] < 0:
+            VFP += 1
+        else:
+            VFN += 1
+    print('TP:', VTP, 'TN:', VTN, 'FP:', VFP, 'FN:', VFN)
+    cri_temp = numpy.zeros(4)
+    for val_cri_it in range(4):
+        cri_temp[val_cri_it] = cal_criterion(VTP, VTN, VFP, VFN, val_cri_it+1)
+        print(cri_name[val_cri_it], cri_temp[val_cri_it])
+# 对测试集进行分类
 ftest = open('test.csv', 'r')
-fout = open('15352049_chenxinyu_PLA.csv','w')
+fout = open('15352049_chenxinyu_PLA.csv', 'w')
 test_list_before = ftest.readlines()
-test_list = []
+test_list = []  # 测试集增广特征向量的集合
 for line in test_list_before:
     T = []
-    temp_row = line.split(',')
+    temp_row = line.split(',')  # 计算一行向量的维数
+    # 减一是为了防止读到问号
     for i in range(len(temp_row)-1):
         T.append(float(temp_row[i]))
-    test_list.append(T)
+    T.insert(0, 1.0)  # 塞1变成增广特征向量
+    temp_np = numpy.array(T)
+    test_list.append(temp_np)
 for line in test_list:
-    line.insert(0, 1.0)
-for line in test_list:
-    SUM = 0
-    for j in range(vec_len):
-        SUM += best_Fw[j]*line[j]
-    if SUM >= 0:
+    SUM = line.dot(best_w[3])  # 采用出现最优F1值的w权重
+    if SUM > 0:
         fout.write('1\n')
     else:
         fout.write('-1\n')
