@@ -52,12 +52,14 @@ w1 = numpy.ones(vc_len)
 #     i += 1
 # print(i)
 set_size = len(train_x)
-cri_type = 2
+cri_type = 4  # 旋转判断是否更新的评价标准：accuracy，precision，recall， F1
+# 初始化TP，TN，FP，FN
 TP = 0
 TN = 0
 FP = 0
 FN = 0
-for j in range(set_size):
+# 初始化最好的评价结果为初始的w得到的评价结果
+for j in range(set_size):  # 遍历所有训练集的向量
     predict_res = w.dot(train_x[j])
     if predict_res >= 0 and train_y[j] >= 0:
         TP += 1
@@ -69,12 +71,12 @@ for j in range(set_size):
         FN += 1
 best_criterion = cal_criterion(TP, TN, FP, FN, cri_type)
 flag = 0
-while flag < set_size:
+while flag < set_size:  # flag标记下层循环是否遍历完所有训练向量
     flag = 0
-    for i in range(set_size):
-        pre_y = w.dot(train_x[i])*train_y[i]
-        w1 = w + train_x[i]*train_y[i]
-        if pre_y <= 0:
+    for i in range(set_size):  # 遍历所有训练向量
+        pre_y = w.dot(train_x[i])*train_y[i]  # 对当前向量进行预测
+        w1 = w + train_x[i]*train_y[i]  # 先行计算出更新后的w
+        if pre_y <= 0:  # 预测错误
             TP = 0
             TN = 0
             FP = 0
@@ -89,11 +91,11 @@ while flag < set_size:
                     FP += 1
                 else:
                     FN += 1
-            if TP != 0:
-                criterion = cal_criterion(TP, TN, FP, FN, cri_type)
-                if criterion > best_criterion or pre_y == 0:
-                    best_criterion = criterion
-                    w = w1.copy()  # 深拷贝
+            if TP != 0:  # TP为0时无法计算precision，recall，f1
+                criterion = cal_criterion(TP, TN, FP, FN, cri_type)  # 计算w1的分类结果
+                if criterion > best_criterion or pre_y == 0:  # w1的评价结果由于原来的
+                    best_criterion = criterion   # 更新最好的结果
+                    w = w1.copy()  # 深拷贝w
                     break
         flag += 1  # 用于判断是否不能再更新了
     print(best_criterion)
@@ -108,7 +110,7 @@ val_y = []
 for line in val_list_before:
     temp_row = line.split(',')
     T = string_to_float(temp_row)
-    T.insert(0, 1)
+    T.insert(0, 1)  # 获取增广特征向量
     temp_np = numpy.array(T[0:vc_len])
     val_x.append(temp_np)
     val_y.append(T[vc_len])
@@ -145,11 +147,11 @@ for line in test_list_before:
     temp_row = line.split(',')
     for i in range(len(temp_row)-1):
         T.append(float(temp_row[i]))
-    T.insert(0, 1.0)
+    T.insert(0, 1.0)  # 塞1获取增广特征向量
     temp_np = numpy.array(T)
     test_list.append(temp_np)
 for line in test_list:
-    SUM = line.dot(w)
+    SUM = line.dot(w)  # 进行预测
     if SUM > 0:
         fout.write('1\n')
     else:

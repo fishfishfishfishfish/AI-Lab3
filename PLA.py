@@ -53,14 +53,14 @@ for i in range(4):
     best_w.append(t_np)
 # 尝试多个结束时间
 for end_time in range(100):
-    w = numpy.ones(vc_len)
-    for i in range(end_time):
-        for j in range(train_set_size):
-            SUM = w.dot(train_x[j])
-            w1 = w+train_x[j]*train_y[j]
-            if SUM*train_y[j] <= 0:
-                w = w1.copy()
-                break
+    w = numpy.ones(vc_len)  # 每次改变结束时间需要把w还原
+    for i in range(end_time):  # 更新w向量end_time次
+        for j in range(train_set_size):  # 遍历训练集的向量
+            SUM = w.dot(train_x[j])  # 使用w的分类结果
+            w1 = w+train_x[j]*train_y[j]  # 先行计算出w更新后的向量
+            if SUM*train_y[j] <= 0:  # 如果之前的预测出错
+                w = w1.copy()  # 更新w
+                break  # 重头开始遍历训练集
     # 评价训练集的结果
     TP = 0
     TN = 0
