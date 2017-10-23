@@ -109,32 +109,3 @@ for end_time in range(3, 5):
 # print('best Precision:', best_P, 'in', best_Pet)
 # print('best Recall:', Recall, 'in', best_Ret)
 # print('best F1:', F1, 'in', best_Fet)
-
-# 进行验证
-# fv = open('val.csv', 'r')
-# val_list_before = fv.readlines()
-# val_list = []
-# for line in val_list_before:
-#     T = []
-#     temp_row = line.split(',')
-#     T = string_to_float(temp_row)
-#     val_list.append(T)
-# for line in val_list:
-#     line.insert(0, 1.0)
-# VTP = 0
-# VTN = 0
-# VFP = 0
-# VFN = 0
-# for line in val_list:
-#     SUM = 0
-#     for j in range(vec_len):
-#         SUM += w[j]*line[j]
-#     if SUM > 0 and line[vec_len] > 0:
-#         VTP += 1
-#     elif SUM < 0 and line[vec_len] < 0:
-#         VTN += 1
-#     elif SUM > 0 and line[vec_len] < 0:
-#         VFP += 1
-#     else:
-#         VFN += 1
-# print(VTP, VTN, VFP, VFN)
