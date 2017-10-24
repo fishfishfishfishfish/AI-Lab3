@@ -9,6 +9,9 @@ def string_to_float(list_await=[]):
 
 
 def cal_criterion(tp, tn, fp, fn, criterion_type):
+    if tp == 0 and criterion_type != 1:
+        print('tp == 0!!!')
+        return 0
     if criterion_type == 1:
         # Accuracy
         return (tp+tn)/(tp+tn+fp+fn)
@@ -41,7 +44,14 @@ for line in train_list_before:
 # print(len(train_x))
 # print(len(train_y))
 # print(train_y)
-w = numpy.ones(vc_len)
+ones_length = 30
+wa = numpy.ones(ones_length)
+wb = numpy.zeros(vc_len-ones_length)
+wa_list = list(wa)
+wb_list = list(wb)
+w_list = wa_list + wb_list
+w = numpy.array(w_list)
+print('original w:', w)
 w1 = numpy.ones(vc_len)
 # dot向量点乘，（*）向量标乘
 # print((w.dot(w1))*train_y[0])
